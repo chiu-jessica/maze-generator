@@ -34,16 +34,20 @@ class Maze:
     def addWalls(self, row, col):
         if row > 0 and self.board[row-1][col] =="u":
             self.board[row-1][col] = "w"
-            self.walls.append([row-1, col])
+            if [row-1, col] not in self.walls:
+                self.walls.append([row-1, col])
         if row < len(self.board)-1 and self.board[row+1][col] == "u":
             self.board[row+1][col] = "w"
-            self.walls.append([row+1, col])
+            if [row+1, col] not in self.walls:
+                self.walls.append([row+1, col])
         if col > 0 and self.board[row][col-1] == "u":
             self.board[row][col-1] = "w"
-            self.walls.append([row, col-1])
+            if [row, col-1] not in self.walls:
+                self.walls.append([row, col-1])
         if col < len(self.board[row]) and self.board[row][col+1] == "u":
             self.board[row][col+1] = "w"
-            self.walls.append([row, col+1])
+            if [row, col+1] not in self.walls:
+                self.walls.append([row, col+1])
 
     def generate(self):
         startingRow = random.randint(1, self.height-2) 
@@ -58,23 +62,75 @@ class Maze:
         counter = 0
         while len(self.walls):
             randWall = self.walls[random.randint(0, len(self.walls)-1)]
-            if counter == 4:
+            if counter == 1000:
                 break
-            # build path up or down
-            if randWall[0] != 0 and randWall[0] != len(self.board)-1:
-                if (self.board[randWall[0]-1][randWall[1]] == "u" and self.board[randWall[0]+1][randWall[1]] == "c") or (self.board[randWall[0]+1][randWall[1]] == "u" and self.board[randWall[0]-1][randWall[1]] == "c"):
-                    self.board[randWall[0]][randWall[1]] = "c"
-                    self.walls.remove(randWall)
-                    self.addWalls(randWall[0], randWall[1])
-            # build path left or right
-            if randWall[1] != 0 and randWall[1] != len(self.board)-1:
-                if (self.board[randWall[0]][randWall[1]-1] == "u" and self.board[randWall[0]][randWall[1]+1] == "c") or (self.board[randWall[0]][randWall[1]+1] == "u" and self.board[randWall[0]][randWall[1]-1] == "c"):
-                    self.board[randWall[0]][randWall[1]] = "c"
-                    self.walls.remove(randWall)
-                    self.addWalls(randWall[0], randWall[1])
-
             counter += 1
+            # create left and right path
+            if randWall[1] != 0:
+                if self.board[randWall[0]][randWall[1]-1] == "u" and self.board[randWall[0]][randWall[1]+1] == "c":
+                    cells = self.surroundingCells(randWall)
+                    if cells < 2:
+                        self.board[randWall[0]][randWall[1]] = "c"
+                        self.walls.remove(randWall)
+                        self.addWalls(randWall[0], randWall[1])
+                        continue
+            if randWall[1] != len(self.board[0])-1:
+                if self.board[randWall[0]][randWall[1]+1] == "u" and self.board[randWall[0]][randWall[1]-1] == "c":
+                    cells = self.surroundingCells(randWall)
+                    if cells < 2:
+                        self.board[randWall[0]][randWall[1]] = "c"
+                        self.walls.remove(randWall)
+                        self.addWalls(randWall[0], randWall[1])
+                        continue
+
+            # create top and bottom path
+            if randWall[0] != 0:
+                if self.board[randWall[0]-1][randWall[1]] == "u" and self.board[randWall[0]+1][randWall[1]] == "c":
+                    cells = self.surroundingCells(randWall)
+                    if cells < 2:
+                        self.board[randWall[0]][randWall[1]] = "c"
+                        self.walls.remove(randWall)
+                        self.addWalls(randWall[0], randWall[1])
+                        continue
+            if randWall[0] != len(self.board)-1:
+                if self.board[randWall[0]+1][randWall[1]] == "u" and self.board[randWall[0]-1][randWall[1]] == "c":
+                    cells = self.surroundingCells(randWall)
+                    if cells < 2:
+                        self.board[randWall[0]][randWall[1]] = "c"
+                        self.walls.remove(randWall)
+                        self.addWalls(randWall[0], randWall[1])
+
+            # move remove!!!
+        
+
+
+            # # build path up or down
+            # if randWall[0] != 0 and randWall[0] != len(self.board)-1:
+            #     if (self.board[randWall[0]-1][randWall[1]] == "u" and self.board[randWall[0]+1][randWall[1]] == "c") or (self.board[randWall[0]+1][randWall[1]] == "u" and self.board[randWall[0]-1][randWall[1]] == "c"):
+            #         self.board[randWall[0]][randWall[1]] = "c"
+            #         self.walls.remove(randWall)
+            #         self.addWalls(randWall[0], randWall[1])
+            # # build path left or right
+            # if randWall[1] != 0 and randWall[1] != len(self.board)-1:
+            #     if (self.board[randWall[0]][randWall[1]-1] == "u" and self.board[randWall[0]][randWall[1]+1] == "c") or (self.board[randWall[0]][randWall[1]+1] == "u" and self.board[randWall[0]][randWall[1]-1] == "c"):
+            #         self.board[randWall[0]][randWall[1]] = "c"
+            #         self.walls.remove(randWall)
+            #         self.addWalls(randWall[0], randWall[1])
+
     
+    def surroundingCells(self, wall):
+        cellCounter = 0
+        if self.board[wall[0]-1][wall[1]] == "c":
+            cellCounter += 1
+        if self.board[wall[0]+1][wall[1]] == "c":
+            cellCounter += 1
+        if self.board[wall[0]][wall[1]-1] == "c":
+            cellCounter += 1
+        if self.board[wall[0]][wall[1]+1] == "c":
+            cellCounter += 1
+        
+        return cellCounter
+
 if __name__ == "__main__":
     maze = Maze(6, 6)
     maze.initMaze()
